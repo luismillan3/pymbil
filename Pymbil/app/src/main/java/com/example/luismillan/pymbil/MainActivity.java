@@ -19,6 +19,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 
+//Padro El Mamao
+
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
