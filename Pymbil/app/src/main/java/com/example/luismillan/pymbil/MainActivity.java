@@ -16,7 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 //Padro El Mamao
@@ -38,8 +42,14 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        List<Items> mainCodedList = new ArrayList<Items>();
+        Items customer = new Items();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ListView mainList = (ListView) findViewById(R.id.list_item);
+
+    //CustomAdapter adapter = new CustomAdapter();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -49,6 +59,10 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+
+
+
     }
 
     @Override
@@ -59,6 +73,7 @@ public class MainActivity extends ActionBarActivity
                 .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
                 .commit();
     }
+
 
     public void onSectionAttached(int number) {
         switch (number) {
