@@ -50,12 +50,12 @@ public class CustomAdapter extends ArrayAdapter<Items> {
         LayoutInflater mInflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.fragment_main, null);
+            convertView = mInflater.inflate(R.layout.item, null);
             holder = new ViewHolder();
 
             holder.txtDesc = (TextView) convertView.findViewById(R.id.name_item);
 
-
+            holder.txtDesc.setText("Puma");
 
             convertView.setTag(holder);
         } else

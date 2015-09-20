@@ -11,7 +11,12 @@ public class Items {
     public String latitud,longitud;
     public Bitmap photo;
 
-    
+
+    public Items (String title){
+
+        this.title = title;
+    }
+
 
     public String getLatitud() {
         return latitud;

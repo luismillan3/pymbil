@@ -1,6 +1,9 @@
 package com.example.luismillan.pymbil;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -8,6 +11,8 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,24 +21,43 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 
-//Padro El Mamao
-//Esto es una prueba!
-//Hellos!
+
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+    public static MainActivity main;
+    public static int resource;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
+    List<Items> mainCodedList;
+
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -42,14 +66,12 @@ public class MainActivity extends ActionBarActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        main = this;
+        resource = R.layout.fragment_main;
 
-        List<Items> mainCodedList = new ArrayList<Items>();
-        Items customer = new Items();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ListView mainList = (ListView) findViewById(R.id.list_item);
 
-    //CustomAdapter adapter = new CustomAdapter();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -59,10 +81,16 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        String result = data.getExtras().getString("la.droid.qr.result");
 
-
+        Toast mensaje = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT);
+        mensaje.show();
     }
 
     @Override
@@ -75,13 +103,20 @@ public class MainActivity extends ActionBarActivity
     }
 
 
+
+
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
                 mTitle = getString(R.string.title_section1);
+               resource = R.layout.fragment_main;
                 break;
             case 2:
                 mTitle = getString(R.string.title_section2);
+                resource = R.layout.success;
+                Intent qrDroid = new Intent("la.droid.qr.scan");
+                qrDroid.putExtra( "la.droid.qr.complete" , true);
+                startActivityForResult(qrDroid, 0);
                 break;
             case 3:
                 mTitle = getString(R.string.title_section3);
@@ -148,15 +183,44 @@ public class MainActivity extends ActionBarActivity
         }
 
         public PlaceholderFragment() {
+
         }
 
+        View rootView;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+            rootView = inflater.inflate(resource, container, false);
+
+if (resource == R.layout.fragment_main) {
+    Button payIt = (Button) rootView.findViewById(R.id.pay_it_button);
+
+
+    payIt.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+             new PutMethod().execute();
+                refresh();
+        }
+    });
+}
+
             return rootView;
+
+
+
         }
 
+
+        public void refresh(){
+            main.mainCodedList = new ArrayList<Items>();
+            Items customer = new Items("PUMA");
+            main.mainCodedList.add(customer);
+            ListView mainList = (ListView) rootView.findViewById(R.id.list_item);
+            CustomAdapter adapter = new CustomAdapter(main, android.R.layout.simple_list_item_1, main.mainCodedList);
+            mainList.setAdapter(adapter);
+        }
         @Override
         public void onAttach(Activity activity) {
             super.onAttach(activity);
@@ -165,4 +229,45 @@ public class MainActivity extends ActionBarActivity
         }
     }
 
+
+
+    private static class PutMethod extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPostExecute(String result) {
+            System.out.println(result);
+
+        }
+
+        protected String doInBackground(String... urls) {
+            JSONObject toSendJson = new JSONObject();
+            List<NameValuePair> nameValuePairs;
+            String  _response = "No lo cogio bruh";
+            try{
+                HttpPost post = new HttpPost("http://54.175.238.70:8080/api/login");
+                HttpClient httpclient = new DefaultHttpClient();
+
+                toSendJson.put("username","duude");
+                toSendJson.put("password","duuude");
+
+                StringEntity se = new StringEntity(toSendJson.toString());
+                se.setContentType("application/json");
+                post.setEntity(se);
+                post.setHeader("Content-type", "application/json");
+
+                HttpResponse response = httpclient.execute(post);
+                _response= EntityUtils.toString(response.getEntity());}
+            catch(IOException e){
+                Log.v("IO error", e.getMessage() + "-" + _response);
+            }
+            catch (JSONException o){
+
+                Log.v("IO error", o.getMessage());
+            }
+
+
+
+            return _response;
+        }
+    }
 }
