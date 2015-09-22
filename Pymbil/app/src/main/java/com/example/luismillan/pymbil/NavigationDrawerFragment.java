@@ -37,6 +37,7 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -121,6 +122,7 @@ public class NavigationDrawerFragment extends Fragment {
                         getString(R.string.title_section1),
                         getString(R.string.title_section2),
                         getString(R.string.title_section3),
+                        getString(R.string.title_section4)
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
@@ -264,7 +266,26 @@ public class NavigationDrawerFragment extends Fragment {
         }
 
         if (item.getItemId() == R.id.action_example) {
-            Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
+            Random hello = new Random();
+            int random = hello.nextInt(4);
+            String response = "Nope";
+
+            switch (random){
+                case 1:
+                    response = "JUST DO IT!!";
+                    break;
+                case 0:
+                    response = "Oh No Way!!";
+                    break;
+                case 2:
+                    response = "Maybe you should wait";
+                    break;
+                case 3:
+                    response = "Ask Him --> ";
+                    break;
+
+            }
+            Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
             return true;
         }
 

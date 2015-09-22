@@ -7,9 +7,9 @@ import android.graphics.Bitmap;
  */
 public class Items {
     public String title;
-    public String descriprion;
-    public String latitud,longitud;
-    public Bitmap photo;
+    public String Id;
+    public String date, phoneNumber;
+    public String amount;
 
 
     public Items (String title){
@@ -18,37 +18,37 @@ public class Items {
     }
 
 
-    public String getLatitud() {
-        return latitud;
+    public String getDate() {
+        return date;
     }
 
-    public void setLatitud(String latitud) {
-        this.latitud = latitud;
+    public void setDate(String date) {
+        this.date = date;
     }
 
-    public String getLongitud() {
-        return longitud;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setLongitud(String longitud) {
-        this.longitud = longitud;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public Bitmap getPhoto() {
-        return photo;
+    public String getAmount() {
+        return amount;
     }
 
-    public void setPhoto(Bitmap photo) {
-        this.photo = photo;
+    public void setAmount(String amount) {
+        this.amount = amount;
     }
 
-    public String getDescriprion() {
+    public String getId() {
 
-        return descriprion;
+        return Id;
     }
 
-    public void setDescriprion(String descriprion) {
-        this.descriprion = descriprion;
+    public void setId(String id) {
+        this.Id = id;
     }
 
     public String getTitle() {

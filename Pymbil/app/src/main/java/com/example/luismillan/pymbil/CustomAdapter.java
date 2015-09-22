@@ -55,7 +55,7 @@ public class CustomAdapter extends ArrayAdapter<Items> {
 
             holder.txtDesc = (TextView) convertView.findViewById(R.id.name_item);
 
-            holder.txtDesc.setText("Puma");
+            holder.txtDesc.setText("Reciept");
 
             convertView.setTag(holder);
         } else

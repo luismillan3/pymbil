@@ -1,6 +1,7 @@
 package com.example.luismillan.pymbil;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -11,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -22,6 +24,8 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +55,12 @@ public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     public static MainActivity main;
     public static int resource;
+    public static JSONObject fromScan;
+    public static UserProfile myprofile;
+    public static boolean makingReceipt=false;
+    public static TextView transferId;
+    public static TextView date;
+    public static TextView amount;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -88,9 +98,58 @@ public class MainActivity extends ActionBarActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         String result = data.getExtras().getString("la.droid.qr.result");
+        System.out.println("Result String: " + result);
+        try{
+            fromScan = new JSONObject(result);
 
-        Toast mensaje = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT);
-        mensaje.show();
+
+            System.out.println("From Scan: " + fromScan);
+
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle("Transaction Alert");
+            alertDialog.setMessage("Do you want to continue with this transaction?\n\nAmount: $" + fromScan.getString("amount") + ".00");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (fromScan != null) {
+                                new Transfer().execute();
+                                //try{
+//                                Items receipt = new Items(fromScan.getString("date"));
+//                                    receipt.setAmount(fromScan.getString("amount"));
+//                                    receipt.setDate(fromScan.getString("date"));
+//                                    receipt.setPhoneNumber(fromScan.getString("recipientPhoneNum"));
+//                                    receipt.setId(fromScan.getString("is"));
+//
+//                                mainCodedList.add(receipt);}
+//                                catch(JSONException e){
+//
+//                                }
+
+                            }
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
+        }
+        catch(JSONException e){
+            System.out.println("JSON ERROR"+e.toString());
+        }
+
+
+
+
+
+
+
+
+
+
     }
 
     @Override
@@ -113,13 +172,16 @@ public class MainActivity extends ActionBarActivity
                 break;
             case 2:
                 mTitle = getString(R.string.title_section2);
-                resource = R.layout.success;
-                Intent qrDroid = new Intent("la.droid.qr.scan");
-                qrDroid.putExtra( "la.droid.qr.complete" , true);
-                startActivityForResult(qrDroid, 0);
+                resource = R.layout.receipt_view;
                 break;
             case 3:
+                resource = R.layout.profile_view;
                 mTitle = getString(R.string.title_section3);
+                break;
+
+            case 4:
+                resource = R.layout.request_qr;
+                mTitle = getString(R.string.title_section4);
                 break;
         }
     }
@@ -193,25 +255,64 @@ public class MainActivity extends ActionBarActivity
 
             rootView = inflater.inflate(resource, container, false);
 
-if (resource == R.layout.fragment_main) {
-    Button payIt = (Button) rootView.findViewById(R.id.pay_it_button);
+            if (resource == R.layout.fragment_main) {
+                Button payIt = (Button) rootView.findViewById(R.id.pay_it_button);
+                amount=(TextView) rootView.findViewById(R.id.textView);
+
+                payIt.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        Intent qrDroid = new Intent("la.droid.qr.scan");
+                        qrDroid.putExtra( "la.droid.qr.complete" , true);
+                        startActivityForResult(qrDroid, 0);
+
+                    }
+                });
+            }
+            else if (resource == R.layout.request_qr) {
+
+                ImageView qris = (ImageView) rootView.findViewById(R.id.imageView);
+                EditText phone = (EditText) rootView.findViewById(R.id.editText);
+                EditText Amount = (EditText) rootView.findViewById(R.id.editText2);
+                Button doneButton = (Button) rootView.findViewById(R.id.button);
+
+                doneButton.setOnClickListener(new View.OnClickListener() {
 
 
-    payIt.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-             new PutMethod().execute();
-                refresh();
-        }
-    });
-}
+                    public void onClick(View v) {
+
+
+                    }
+                });
+
+
+
+
+            }
+
+            else if (resource == R.layout.receipt_view){
+
+                if(makingReceipt){
+
+
+                makingReceipt=false;
+                System.out.println("entreeee");}
+
+                else{
+                    transferId=(TextView) rootView.findViewById(R.id.transaction_id_receipt);
+                    date=(TextView) rootView.findViewById(R.id.date_receipt);
+                    amount=(TextView) rootView.findViewById(R.id.amount_receipt);
+                }
+
+            }
 
             return rootView;
-
-
-
         }
 
+public void makeReceipt(){
+
+}
 
         public void refresh(){
             main.mainCodedList = new ArrayList<Items>();
@@ -231,15 +332,27 @@ if (resource == R.layout.fragment_main) {
 
 
 
-    private static class PutMethod extends AsyncTask<String, Void, String> {
+    private static class LogIn extends AsyncTask<JSONObject, Void, String> {
 
         @Override
         protected void onPostExecute(String result) {
-            System.out.println(result);
+            try{
+            JSONObject forUser = new JSONObject(result);
+                myprofile = new UserProfile(forUser.getString("id"),forUser.getString("phoneNumber"),forUser.getString("name"),"100");
+            }
+
+            catch(JSONException e){
+
+            }
+
+
+            Toast mensaje = Toast.makeText(main.getApplicationContext(), result, Toast.LENGTH_LONG);
+            mensaje.show();
+
 
         }
 
-        protected String doInBackground(String... urls) {
+        protected String doInBackground(JSONObject... object) {
             JSONObject toSendJson = new JSONObject();
             List<NameValuePair> nameValuePairs;
             String  _response = "No lo cogio bruh";
@@ -250,6 +363,53 @@ if (resource == R.layout.fragment_main) {
                 toSendJson.put("username","duude");
                 toSendJson.put("password","duuude");
 
+                StringEntity se = new StringEntity(fromScan.toString());
+                se.setContentType("application/json");
+                post.setEntity(se);
+                post.setHeader("Content-type", "application/json");
+
+                HttpResponse response = httpclient.execute(post);
+                _response= EntityUtils.toString(response.getEntity());}
+            catch(IOException e){
+                Log.v("IO error", e.getMessage() + "-" + _response);
+            }
+            catch (JSONException o){
+
+                Log.v("IO error", o.getMessage());
+            }
+
+
+
+            return _response;
+        }
+    }
+
+
+
+    private static class Register extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            System.out.println(result);
+
+        }
+
+        protected String doInBackground(String... urls) {
+            JSONObject toSendJson = new JSONObject();
+            List<NameValuePair> nameValuePairs;
+            String  _response = "No lo cogio bruh";
+            try{
+                HttpPost post = new HttpPost("http://54.175.238.70:8080/api/registerCustomer");
+                HttpClient httpclient = new DefaultHttpClient();
+
+                toSendJson.put("username","Luis");
+                toSendJson.put("password","hackpr");
+                toSendJson.put("cardNumber","0911231");
+                toSendJson.put("isPublic","true");
+                toSendJson.put("name","TechCompany");
+                toSendJson.put("phoneNumber","7874563232");
+
                 StringEntity se = new StringEntity(toSendJson.toString());
                 se.setContentType("application/json");
                 post.setEntity(se);
@@ -257,6 +417,70 @@ if (resource == R.layout.fragment_main) {
 
                 HttpResponse response = httpclient.execute(post);
                 _response= EntityUtils.toString(response.getEntity());}
+            catch(IOException e){
+                Log.v("IO error", e.getMessage() + "-" + _response);
+            }
+            catch (JSONException o){
+
+                Log.v("IO error", o.getMessage());
+            }
+
+
+
+            return _response;
+        }
+    }
+
+
+
+    private class Transfer extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPostExecute(String result) {
+            System.out.println(result);
+            Toast mensaje = Toast.makeText(main.getApplicationContext(), result, Toast.LENGTH_LONG);
+
+            mensaje.show();
+            try {
+
+                JSONObject obj = new JSONObject(result);
+                makingReceipt=true;
+                amount.setVisibility(View.VISIBLE);
+                amount.setText("    Receipt\n"+
+                        " Transfer Id: " + obj.getJSONObject("transfer").getString("id") + "\n" +
+                        " Date: " + obj.getJSONObject("transfer").getString("date") + "\n" +
+                        "Amount: $"+ obj.getJSONObject("transfer").getString("amount") );
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+
+
+        }
+
+        protected String doInBackground(String... urls) {
+            JSONObject toSendJson = new JSONObject();
+            List<NameValuePair> nameValuePairs;
+            String  _response = "No lo cogio bruh";
+            try{
+                HttpPost post = new HttpPost("http://54.175.238.70:8080/api/makeTransfer");
+                HttpClient httpclient = new DefaultHttpClient();
+
+                toSendJson.put("recipientPhoneNum","5673634");
+                toSendJson.put("amount","4.00");
+
+
+                StringEntity se = new StringEntity(fromScan.toString());
+                se.setContentType("application/json");
+                post.setEntity(se);
+                post.setHeader("Content-type", "application/json");
+
+                HttpResponse response = httpclient.execute(post);
+                _response= EntityUtils.toString(response.getEntity());
+                System.out.println(_response);
+            }
             catch(IOException e){
                 Log.v("IO error", e.getMessage() + "-" + _response);
             }
